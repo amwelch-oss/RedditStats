@@ -9,6 +9,7 @@ def form_user_agent(config_object=config):
     user_agent = "{}.{}: {} For inquiries contact /u/{}"
     user_agent = user_agent.format(config_object.NAME, config_object.VERSION,\
      config_object.DESCRIPTION, config_object.REDDIT_USER)
+    return user_agent
 
 def create_connection(reddit_interface=praw):
     '''
