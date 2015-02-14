@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='reditstats',
       version='1.0',
       description='Statistics and Analytics for Redit',
       author='Alexander Welch',
       author_email='amwelch3@gmail.com',
-      packages=['reditstats'],
+      install_requires=['praw'],
+      test_requires=[],
+      packages=['redditstats'],
      )
