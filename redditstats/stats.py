@@ -1,9 +1,24 @@
-import pandas as pd
 import random
+
+import pandas as pd
+import numpy as np 
+import matplotlib.pyplot as plt
 
 import connect
 import comments
 import subreddit
+
+def generate_cdf(df, column='score'):
+    '''
+    Given a dataframe this function will plot and show 
+    a cdf for the column passed in
+    '''
+    
+    title = 'CDF for {}'.format(column)
+    df['score'].hist(cumulative=True, normed=1, bins=100).set_title(title)
+    plt.show()
+    return
+     
 
 def get_user_comment_activity(sub_name='soccer', limit=100):
     '''
