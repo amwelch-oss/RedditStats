@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='redditstats',
-      version='1.1',
+      version='1.0',
       description='Statistics and Analytics for Redit',
       author='Alexander Welch',
       author_email='amwelch3@gmail.com',

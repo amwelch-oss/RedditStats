@@ -1,6 +1,7 @@
 import unittest
 from mock import Mock
 import random
+import string
 
 import redditstats.connect as connect
 import redditstats.subreddit as subreddit
@@ -57,6 +58,52 @@ class CommentTests(unittest.TestCase):
         self.assertEquals(info['score'], mocked_comment.ups - mocked_comment.downs)
         self.assertEquals(info['ts'], mocked_comment.created)
 
+    def test_get_submission_comment_summary(self):
+        '''
+        Tests the simple case that given a submission object with comments
+        get_submission_comment_summary correctly returns a dict summarizing 
+        the comments in a submission
+        '''
+
+        #Given
+        sub_id = 'baz'
+        true_values = {}
+        mocked_submission = Mock()
+        mocked_submission.replace_more_comments.return_value = None
+        mocked_submission.id = sub_id
+        true_values[sub_id] = {}
+        true_values[sub_id]['count'] = 0
+        true_values[sub_id]['score'] = 0
+        true_values[sub_id]['total_len'] = 0 
+
+        mocked_comments = []
+        for a in ['foo', 'bar']:
+            for i in range(random.randint(0,10)):
+                ups = random.randint(0,100)
+                downs = random.randint(0,10)
+                created = random.randint(0,10000)
+                body = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(random.randint(1,200)))
+
+                true_values[sub_id]['count'] += 1
+                true_values[sub_id]['score'] += ups - downs
+                true_values[sub_id]['total_len'] += len(body)
+
+                comment = Mock()
+                comment.author = a
+                comment.ups = ups
+                comment.downs = downs
+                comment.created = created
+                comment.body = body
+                mocked_comments.append(comment)
+
+        mocked_submission.comments = mocked_comments
+
+        #When
+        summary = comments.get_submission_comment_summary(mocked_submission)
+
+        #Then
+        self.assertEquals(summary, true_values)
+
     def test_get_user_comment_summary(self):
         '''
         Tests the simple case that given a submission object with comments
@@ -73,19 +120,23 @@ class CommentTests(unittest.TestCase):
             true_values[a] = {}
             true_values[a]['count'] = 0
             true_values[a]['score'] = 0
+            true_values[a]['total_len'] = 0 
             for i in range(random.randint(0,10)):
-                ups = random.randint(0,10)
+                ups = random.randint(0,100)
                 downs = random.randint(0,10)
                 created = random.randint(0,10000)
+                body = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(random.randint(1,200)))
 
                 true_values[a]['count'] += 1
                 true_values[a]['score'] += ups - downs
+                true_values[a]['total_len'] += len(body)
 
                 comment = Mock()
                 comment.author = a
                 comment.ups = ups
                 comment.downs = downs
                 comment.created = created
+                comment.body = body
                 mocked_comments.append(comment)
 
         mocked_submission.comments = mocked_comments

@@ -7,6 +7,10 @@ import connect
 import subreddit
 import stats
 
+import pandas as pd
+import numpy as np 
+import matplotlib.pyplot as plt
+
 def parse_args():
     p = argparse.ArgumentParser(description='''
         ''', formatter_class=argparse.RawTextHelpFormatter)
@@ -20,8 +24,13 @@ def main():
     import ipdb
     ipdb.set_trace()
 
-    stats.get_user_comment_activity()
-     
+    df = subreddit.get_posts_summary(conn, 'soccer', limit=10)
+ 
+    print df
+    import ipdb
+    ipdb.set_trace()
+    stats.generate_cdf(df)
+
     return
     posts = subreddit.get_posts(conn, 'soccer', limit=100)
     for post in posts:
