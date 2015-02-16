@@ -2,10 +2,12 @@ import unittest
 from mock import Mock
 import random
 import string
+import arrow
 
 import redditstats.connect as connect
 import redditstats.subreddit as subreddit
 import redditstats.comments as comments
+import redditstats.stats as stats
 
 from collections import namedtuple
 
@@ -149,6 +151,41 @@ class CommentTests(unittest.TestCase):
      
 
 class SubredditTests(unittest.TestCase):
+    def test_get_submission_by_date(self):
+        '''
+        Given a list of submissions tests that get_submission_by_date
+        returns only the submissions in the given interval
+        '''
+        #Given
+        mocked_submissions = []
+
+        interval_start = arrow.get('2015-02-05 00:00')
+        interval_end = interval_start.replace(hours=24)
+
+        generated_dates_start = interval_start.replace(hours=-24)
+        generated_dates_end = interval_end.replace(hours=24)
+
+        generated_dates = generated_dates_start.range('hour', generated_dates_start, end=generated_dates_end)
+        interval_dates = interval_start.range('hour', interval_start, end=interval_end)
+
+        for date in generated_dates:
+            submission = Mock()
+            submission.created = date.format('X')
+            mocked_submissions.append(submission)
+
+        conn = Mock()
+        conn.get_subreddit.return_value = Mock()
+        conn.get_subreddit.return_value.get_new.return_value = mocked_submissions
+
+        end_str = interval_end.strftime('%Y-%m-%d %H:%M')
+        start_str = interval_start.strftime('%Y-%m-%d %H:%M')
+
+        #When
+        submissions = subreddit.get_submission_by_date(conn, 'foo', end = end_str, start=start_str)
+        
+        #Then
+        self.assertEquals(len(submissions), len(interval_dates))
+
     def test_get_subreddit(self):
         '''
         Tests that get_subreddit makes the correct call to praw
@@ -177,6 +214,60 @@ class SubredditTests(unittest.TestCase):
 
         #Then
         self.assertTrue(ret)
+
+
+    def test_get_posts_summary(self):
+        '''
+        Simple test to ensure that get_posts_summary correctly
+        aggregates the stats
+        '''
+        #Given
+
+        title ='test_post'
+        sub_id = 'baz'
+        true_values = {}
+        mocked_submission = Mock()
+        mocked_submission.replace_more_comments.return_value = None
+        mocked_submission.id = sub_id
+        mocked_submission.title = title
+        true_values[sub_id] = {}
+        true_values[sub_id]['count'] = 0
+        true_values[sub_id]['score'] = 0
+        true_values[sub_id]['total_len'] = 0 
+        true_values[sub_id]['title'] = title
+
+        mocked_comments = []
+        for a in ['foo', 'bar']:
+            for i in range(random.randint(0,10)):
+                ups = random.randint(0,100)
+                downs = random.randint(0,10)
+                created = random.randint(0,10000)
+                body = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(random.randint(1,200)))
+
+                true_values[sub_id]['count'] += 1
+                true_values[sub_id]['score'] += ups - downs
+                true_values[sub_id]['total_len'] += len(body)
+
+                comment = Mock()
+                comment.author = a
+                comment.ups = ups
+                comment.downs = downs
+                comment.created = created
+                comment.body = body
+                mocked_comments.append(comment)
+
+        mocked_submission.comments = mocked_comments
+        conn = Mock()
+        mocked_subreddit = Mock()
+        mocked_subreddit.get_new.return_value = [mocked_submission]
+        conn.get_subreddit.return_value = mocked_subreddit
+
+        true_df = stats.convert_stats_to_dataframe(true_values)
+
+        #When
+        df = subreddit.get_posts_summary(conn, 'foo')
+        #Then
+        self.assertTrue((true_df.values == df.values).all())
 
 
 if __name__ == '__main__':
