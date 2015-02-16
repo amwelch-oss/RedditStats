@@ -27,8 +27,11 @@ def get_posts_summary(conn, subreddit_name, limit=0):
     submissions = get_posts(conn, subreddit_name, limit=limit)
 
     data = {}
+    import ipdb; ipdb.set_trace()
     for submission in submissions:
-        data.update(comments.get_submission_comment_summary(submission))
+        sub_stats = comments.get_submission_comment_summary(submission)
+        sub_stats['title'] = submission.title
+        data.update(sub_stats)
 
     df = stats.convert_stats_to_dataframe(data)
     return df
