@@ -7,7 +7,7 @@ setup(name='redditstats',
       description='Statistics and Analytics for Redit',
       author='Alexander Welch',
       author_email='amwelch3@gmail.com',
-      install_requires=['praw'],
+      install_requires=['praw', 'arrow', 'pandas', 'numpy'],
       test_requires=['unittest', 'mock'],
       packages=['redditstats'],
      )
