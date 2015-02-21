@@ -2,6 +2,7 @@ import arrow
 
 import comments
 import stats
+import util
 
 def get_subreddit(conn, name):
     '''
@@ -29,7 +30,10 @@ def get_posts_summary(conn, subreddit_name, limit=0):
     submissions = get_posts(conn, subreddit_name, limit=limit)
 
     data = {}
+    count = 0 
     for submission in submissions:
+        count += 1
+        util.status_update(count)
         sub_stats = comments.get_submission_comment_summary(submission)
         sub_stats[submission.id]['title'] = submission.title
         data.update(sub_stats)
@@ -38,7 +42,7 @@ def get_posts_summary(conn, subreddit_name, limit=0):
     return df
  
  
-def get_submission_by_date(conn, sub_name, end, start=None):
+def get_submission_by_date(conn, sub_name, end, start=None, limit=0):
     '''
     Gets all submissions to a subreddit in the interval [start, end]
     Unfortunatly this loops through get_new until we hit the start of the interval.
@@ -54,12 +58,18 @@ def get_submission_by_date(conn, sub_name, end, start=None):
     end_ts = arrow.get(end)
     posts = get_posts(conn, sub_name, limit=None)
     submissions_in_interval = []
+    count = 0
+    processed = 0
     for post in posts:
+        processed += 1
+        util.status_update(processed)
         ts = arrow.get(post.created)
         if ts > end_ts:
             break
         if start_ts and ts < start_ts:
             continue
         submissions_in_interval.append(post)
+        if limit and count >= limit:
+            break        
 
     return submissions_in_interval
