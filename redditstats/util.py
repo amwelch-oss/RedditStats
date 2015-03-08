@@ -1,6 +1,6 @@
 import sys
 
-def stats_update(count, thresh=10):
+def status_update(count, thresh=10):
     '''
     Prints a "." every time count % thresh == 0
     Intended to give feedback to the user that the
